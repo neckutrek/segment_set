@@ -59,11 +59,37 @@ struct segment
 };
 
 template <typename T>
+ostream& operator<<(ostream& os, const segment<T>& seg)
+{
+   os << '(' << seg.begin << ',' << seg.end << ',' << seg.value << ')';
+   return os;
+}
+
+template <typename T>
 class segment_set
 {
 public:
    class iterator {};
    class const_iterator {};
+
+   T find_max()
+   {
+       T maxval = 0;
+       for_each(segments.begin(), segments.end(), [&maxval](const segment<T>& seg){
+           maxval = max(maxval, seg.value);
+       });
+       return maxval;
+   }
+
+   [[nodiscard]] inline bool empty() const noexcept
+   {
+      return segments.empty();
+   }
+
+   inline size_t size() const noexcept
+   {
+      return segments.size();
+   }
 
    //void clear() noexcept;
 
@@ -88,7 +114,20 @@ private:
    // and are sorted on their beginning
    list< segment<T> > segments;
 
+   template <typename U>
+   friend ostream& operator<<(ostream& os, const segment_set<U>& sset);
+
 };
+
+template <typename T>
+ostream& operator<<(ostream& os, const segment_set<T>& sset)
+{
+   for (const auto& seg : sset.segments)
+   {
+      os << seg << endl;
+   }
+   return os;
+}
 
 template <typename T>
 void
@@ -103,7 +142,7 @@ segment_set<T>::insert(size_t begin, size_t end, const T& value)
       segments.push_back( segment<T>(begin, end, value) );
       return;
    }
-
+   
    list< segment<T> > new_segments;
 
    size_t internal_begin = begin;
@@ -112,6 +151,12 @@ segment_set<T>::insert(size_t begin, size_t end, const T& value)
    auto itr_end = segments.end();
    while (itr != itr_end && end > itr->begin)
    {
+      if (internal_begin >= itr->end)
+      {
+         ++itr;
+         continue;
+      }
+
       if (internal_begin < itr->begin)
       {
          new_segments.push_back( segment<T>(internal_begin, itr->begin, value) );

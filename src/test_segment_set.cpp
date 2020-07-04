@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <type_traits>
+#include <fstream>
+#include <vector>
+#include <sstream>
 
 #include "segment_set.h"
 
@@ -61,33 +64,137 @@ TEST_CASE("segment_set-construction")
 
 TEST_CASE("segment_set-insert-and-at")
 {
-   segment_set<double> sset;
-   sset.insert(1, 10, 5);
-   sset.insert(5, 12, 6);
-
-   SECTION("throw-at-0")
+   SECTION("single-segment")
    {
+      segment_set<int> sset;
+      REQUIRE(sset.size() == 0);
+      REQUIRE(sset.empty());
+
+      sset.insert(4, 10, 5);
+
       bool caught = false;
-      try { sset.at(0); }
+      try { sset.at(3); }
       catch (out_of_range& e) { caught = true; }
       REQUIRE(caught == true);
+
+      caught = false;
+      try { sset.at(10); }
+      catch (out_of_range& e) { caught = true; }
+      REQUIRE(caught == true);
+
+      for (int i=4; i<10; ++i)
+      {
+         REQUIRE(sset.at(i) == 5);
+      }
    }
 
-   SECTION("at-border-positions")
+   SECTION("two-segments-1")
    {
-      REQUIRE(sset.at(1) == 5);
+      segment_set<int> sset;
+      sset.insert(3, 6, 5);
+      REQUIRE(sset.size() == 1);
+      sset.insert(6, 9, 6);
+      REQUIRE(sset.size() == 2);
+      for (int i=3; i<6; ++i) REQUIRE(sset.at(i) == 5);
+      for (int i=6; i<9; ++i) REQUIRE(sset.at(i) == 6);
+   }
+
+   SECTION("two-segments-2")
+   {
+      segment_set<int> sset;
+      sset.insert(3, 6, 5);
+      REQUIRE(sset.size() == 1);
+      sset.insert(2, 7, 6);
+      REQUIRE(sset.size() == 3);
+
+      REQUIRE(sset.at(2) == 6);
+      for (int i=3; i<6; ++i) REQUIRE(sset.at(i) == 11);
+      REQUIRE(sset.at(6) == 6);
+   }
+
+   SECTION("two-segments-3")
+   {
+      segment_set<int> sset;
+      sset.insert(3, 6, 5);
+      REQUIRE(sset.size() == 1);
+      sset.insert(4, 5, 6);
+      REQUIRE(sset.size() == 3);
+
+      REQUIRE(sset.at(3) == 5);
+      REQUIRE(sset.at(4) == 11);
+      REQUIRE(sset.at(5) == 5);
+   }
+
+   SECTION("two-segments-4")
+   {
+      segment_set<int> sset;
+      sset.insert(3, 6, 5);
+      REQUIRE(sset.size() == 1);
+      sset.insert(5, 8, 6);
+      REQUIRE(sset.size() == 3);
+
+      REQUIRE(sset.at(3) == 5);
       REQUIRE(sset.at(4) == 5);
       REQUIRE(sset.at(5) == 11);
-      REQUIRE(sset.at(9) == 11);
-      REQUIRE(sset.at(10) == 6);
-      REQUIRE(sset.at(11) == 6);
+      REQUIRE(sset.at(6) == 6);
+      REQUIRE(sset.at(7) == 6);
    }
 
-   SECTION("throw-at-12")
+   SECTION("two-segments-5")
    {
-      bool caught = false;
-      try { sset.at(12); }
-      catch (out_of_range& e) { caught = true; }
-      REQUIRE(caught == true);
+      segment_set<int> sset;
+      sset.insert(3, 6, 5);
+      REQUIRE(sset.size() == 1);
+      sset.insert(2, 5, 6);
+      REQUIRE(sset.size() == 3);
+
+      REQUIRE(sset.at(2) == 6);
+      REQUIRE(sset.at(3) == 11);
+      REQUIRE(sset.at(4) == 11);
+      REQUIRE(sset.at(5) == 5);
    }
+
+   SECTION("three-segments-1")
+   {
+      segment_set<int> sset;
+      sset.insert(3, 6, 5);
+      sset.insert(8, 10, 6);
+      sset.insert(6, 9, 7);
+      REQUIRE(sset.size() == 4);
+      REQUIRE(sset.at(3) == 5);
+      REQUIRE(sset.at(4) == 5);
+      REQUIRE(sset.at(5) == 5);
+      REQUIRE(sset.at(6) == 7);
+      REQUIRE(sset.at(7) == 7);
+      REQUIRE(sset.at(8) == 13);
+      REQUIRE(sset.at(9) == 6);
+   }
+}
+
+TEST_CASE("rnd")
+{
+   segment_set<long> sset;
+
+   ifstream ifs("../data/input.txt");
+   string line = "";
+   while (getline(ifs, line))
+   {
+      vector<int> input;
+      istringstream iss(line);
+      for_each(
+         istream_iterator<string>{iss},
+         istream_iterator<string>{},
+         [&input](const string& str){ input.push_back(stoi(str)); }
+      );
+
+      sset.insert(input[0], input[1], input[2]);
+   }
+   ifs.close();
+
+   ofstream ofs("../data/output.txt");
+   ofs << sset << endl;
+   ofs.close();
+
+   long max = sset.find_max();
+   REQUIRE(max == 8628);
 }

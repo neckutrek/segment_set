@@ -9,7 +9,7 @@
          "type": "cppdbg",
          "request": "launch",
          "program": "${workspaceFolder}/bin/test_segment_set",
-         "args": [],
+         "args": [""],
          "stopAtEntry": false,
          "cwd": "${workspaceFolder}/bin",
          "environment": [],
