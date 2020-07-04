@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <iterator>
 
 #include "segment_set.h"
 
@@ -169,6 +170,19 @@ TEST_CASE("segment_set-insert-and-at")
       REQUIRE(sset.at(8) == 13);
       REQUIRE(sset.at(9) == 6);
    }
+
+   SECTION("three-segments-unordered")
+   {
+      segment_set<int> sset;
+      sset.insert(8, 10, 5);
+      sset.insert(5, 7, 6);
+      sset.insert(1, 4, 7);
+      ostringstream oss;
+      oss << sset;
+      REQUIRE(oss.str().compare(R"(1,4,7)
+(5,7,6)
+(8,10,5)") == 0);
+   }
 }
 
 TEST_CASE("rnd")
@@ -196,5 +210,5 @@ TEST_CASE("rnd")
    ofs.close();
 
    long max = sset.find_max();
-   REQUIRE(max == 8628);
+   REQUIRE(max == 8628l);
 }

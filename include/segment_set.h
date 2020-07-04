@@ -142,14 +142,17 @@ segment_set<T>::insert(size_t begin, size_t end, const T& value)
       segments.push_back( segment<T>(begin, end, value) );
       return;
    }
-   
-   list< segment<T> > new_segments;
 
    size_t internal_begin = begin;
 
    auto itr = segments.begin();
    auto itr_end = segments.end();
-   while (itr != itr_end && end > itr->begin)
+   if (end <= itr->begin)
+   {
+      segments.insert( itr, segment<T>(internal_begin, end, value) );
+      internal_begin = end;
+   }
+   else while (itr != itr_end && end > itr->begin)
    {
       if (internal_begin >= itr->end)
       {
@@ -159,7 +162,7 @@ segment_set<T>::insert(size_t begin, size_t end, const T& value)
 
       if (internal_begin < itr->begin)
       {
-         new_segments.push_back( segment<T>(internal_begin, itr->begin, value) );
+         segments.insert( itr, segment<T>(internal_begin, itr->begin, value) );
          internal_begin = itr->begin;
       }
 
@@ -169,19 +172,19 @@ segment_set<T>::insert(size_t begin, size_t end, const T& value)
 
       if (break1 > 0)
       {
-         new_segments.push_back( segment<T>(itr->begin, internal_begin, itr->value) );
+         segments.insert( itr, segment<T>(itr->begin, internal_begin, itr->value) );
          erase_this_itr = true;
       }
 
       if (break2 > 0)
       {
-         new_segments.push_back( segment<T>(internal_begin, end, op(itr->value, value)) );
-         new_segments.push_back( segment<T>(end, itr->end, itr->value) );
+         segments.insert( itr, segment<T>(internal_begin, end, op(itr->value, value)) );
+         segments.insert( itr, segment<T>(end, itr->end, itr->value) );
          erase_this_itr = true;
       }
       else if (break1 > 0)
       {
-         new_segments.push_back( segment<T>(internal_begin, itr->end, op(itr->value, value)) );
+         segments.insert( itr, segment<T>(internal_begin, itr->end, op(itr->value, value)) );
       }
 
       internal_begin = itr->end;
@@ -199,10 +202,8 @@ segment_set<T>::insert(size_t begin, size_t end, const T& value)
 
    if (internal_begin < end)
    {
-      new_segments.push_back( segment<T>(internal_begin, end, value) );
+      segments.push_back( segment<T>(internal_begin, end, value) );
    }
-
-   segments.splice(segments.end(), new_segments);
 }
 
 template <typename T>
