@@ -8,7 +8,7 @@
          "name": "main",
          "type": "cppdbg",
          "request": "launch",
-         "program": "${workspaceFolder}/bin/main",
+         "program": "${workspaceFolder}/bin/test_segment_set",
          "args": [],
          "stopAtEntry": false,
          "cwd": "${workspaceFolder}/bin",
