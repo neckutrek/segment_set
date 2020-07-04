@@ -185,30 +185,46 @@ TEST_CASE("segment_set-insert-and-at")
    }
 }
 
-TEST_CASE("rnd")
+TEST_CASE("custom-test-cases")
 {
-   segment_set<long> sset;
-
-   ifstream ifs("../data/input.txt");
-   string line = "";
-   while (getline(ifs, line))
+   auto section = [](
+      const string& input_filename,
+      const string& output_filename,
+      long max_value)
    {
-      vector<int> input;
-      istringstream iss(line);
-      for_each(
-         istream_iterator<string>{iss},
-         istream_iterator<string>{},
-         [&input](const string& str){ input.push_back(stoi(str)); }
-      );
+      segment_set<long> sset;
 
-      sset.insert(input[0], input[1], input[2]);
+      ifstream ifs(input_filename);
+      string line = "";
+      while (getline(ifs, line))
+      {
+         vector<int> input;
+         istringstream iss(line);
+         for_each(
+            istream_iterator<string>{iss},
+            istream_iterator<string>{},
+            [&input](const string& str){ input.push_back(stoi(str)); }
+         );
+
+         sset.insert(input[0], input[1], input[2]);
+      }
+      ifs.close();
+
+      ofstream ofs(output_filename);
+      ofs << sset << endl;
+      ofs.close();
+
+      long max = sset.find_max();
+      REQUIRE(max == max_value);
+   };
+
+   SECTION("section-1")
+   {
+      section("../data/input.txt", "../data/output.txt", 8628l);
    }
-   ifs.close();
 
-   ofstream ofs("../data/output.txt");
-   ofs << sset << endl;
-   ofs.close();
-
-   long max = sset.find_max();
-   REQUIRE(max == 8628l);
+   SECTION("section-2")
+   {
+      section("../data/input2.txt", "../data/output2.txt", 2497169732l);
+   }
 }

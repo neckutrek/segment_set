@@ -133,7 +133,7 @@ template <typename T>
 void
 segment_set<T>::insert(size_t begin, size_t end, const T& value)
 {
-   constexpr auto op = [](const T& t1, const T& t2) -> T {
+   auto op = [](const T& t1, const T& t2) -> T {
       return t1 + t2;
    };
 
